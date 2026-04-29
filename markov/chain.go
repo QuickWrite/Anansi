@@ -29,9 +29,9 @@ func (w *WeightedList[T]) GetRand(rand *rand.Rand) T {
 			continue
 		}
 
-		// Is i equal to zero                => we reached the end
-		// Is the value below greater than v => we reached the end
-		if i == 0 || w.weights[i-1] > v {
+		// Is i equal to zero             => we reached the end
+		// Is the value below less than v => we reached the end
+		if i == 0 || w.weights[i-1] < v {
 			return w.list[i]
 		}
 
@@ -85,6 +85,7 @@ func BuildMarkovChain[T comparable](seq iter.Seq[T]) MarkovChain[T] {
 
 		if val, ok := markov[*prev]; ok {
 			val.addDirty(elem)
+			markov[*prev] = val
 		} else {
 			markov[*prev] = WeightedList[T]{
 				list:    []T{elem},
@@ -96,8 +97,9 @@ func BuildMarkovChain[T comparable](seq iter.Seq[T]) MarkovChain[T] {
 		prev = &elem
 	}
 
-	for _, val := range markov {
+	for i, val := range markov {
 		val.clean()
+		markov[i] = val
 	}
 
 	return markov
