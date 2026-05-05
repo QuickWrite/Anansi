@@ -15,28 +15,19 @@ type WeightedList[T comparable] struct {
 func (w *WeightedList[T]) GetRand(rand *rand.Rand) T {
 	v := rand.IntN(w.sum)
 
-	lower := 0
-	higher := len(w.list)
+	low, high := 0, len(w.weights)
 
-	var i int
+	for low < high {
+		mid := low + (high-low)/2
 
-	for {
-		i = lower + (higher-lower)/2
-
-		// Is the value lower, then go right
-		if w.weights[i] < v {
-			lower = i
-			continue
+		if v < w.weights[mid] {
+			high = mid
+		} else {
+			low = mid + 1
 		}
-
-		// Is i equal to zero             => we reached the end
-		// Is the value below less than v => we reached the end
-		if i == 0 || w.weights[i-1] < v {
-			return w.list[i]
-		}
-
-		higher = i
 	}
+
+	return w.list[low]
 }
 
 func (w *WeightedList[T]) addDirty(elem T) {
