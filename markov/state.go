@@ -21,18 +21,29 @@ func NewState[T comparable](chain MarkovChain[T], current T, source rand.Source)
 }
 
 // Returns the next token according to the MarkovState
-func (m *MarkovState[T]) GetNext() T {
-	l := m.MarkovChain[m.Current]
+func (m *MarkovState[T]) GetNext() (T, bool) {
+	l, ok := m.MarkovChain[m.Current]
+	if !ok || l.sum == 0 {
+		var zero T
+		return zero, false
+	}
+
 	m.Current = l.GetRand(&m.Rand)
 
-	return m.Current
+	return m.Current, true
 }
 
 // Produces an max sequence of tokens
 func (m *MarkovState[T]) Seq() iter.Seq[T] {
 	return func(yield func(T) bool) {
 		for {
-			if !yield(m.GetNext()) {
+			next, ok := m.GetNext()
+
+			if !ok {
+				return
+			}
+
+			if !yield(next) {
 				return
 			}
 		}
