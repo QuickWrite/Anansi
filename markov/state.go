@@ -22,7 +22,7 @@ func NewState[T comparable](chain MarkovChain[T], current T, source rand.Source)
 
 // Returns the next token according to the MarkovState
 func (m *MarkovState[T]) GetNext() (T, bool) {
-	l, ok := m.MarkovChain[m.Current]
+	l, ok := m.MarkovChain.Chain[m.Current]
 	if !ok || l.sum == 0 {
 		var zero T
 		return zero, false

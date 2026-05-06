@@ -27,7 +27,7 @@ func TestBuildMarkovChain_Basic(t *testing.T) {
 
 	// a should always go to b
 	for range 10 {
-		tmp := m["a"]
+		tmp := m.Chain["a"]
 		got := tmp.GetRand(r)
 
 		if got != "b" {
@@ -37,7 +37,7 @@ func TestBuildMarkovChain_Basic(t *testing.T) {
 
 	// b should always go to c
 	for range 10 {
-		tmp := m["b"]
+		tmp := m.Chain["b"]
 		got := tmp.GetRand(r)
 
 		if got != "c" {
@@ -55,7 +55,7 @@ func TestBuildMarkovChain_Repeated(t *testing.T) {
 
 	// only possible transition is "b"
 	for range 20 {
-		tmp := m["a"]
+		tmp := m.Chain["a"]
 		got := tmp.GetRand(r)
 
 		if got != "b" {
@@ -74,7 +74,7 @@ func TestBuildMarkovChain_Branching(t *testing.T) {
 	counts := map[string]int{}
 
 	for range 1000 {
-		tmp := m["a"]
+		tmp := m.Chain["a"]
 		v := tmp.GetRand(r)
 		counts[v]++
 	}
@@ -90,7 +90,7 @@ func TestBuildMarkovChain_Single(t *testing.T) {
 
 	m := markov.BuildMarkovChain(seq)
 
-	if len(m) != 0 {
+	if len(m.Chain) != 0 {
 		t.Fatalf("expected no transitions, got %v", m)
 	}
 }
@@ -106,7 +106,7 @@ func TestBuildMarkovChain_LongSequence(t *testing.T) {
 	counts := map[string]int{}
 
 	for range 1000 {
-		tmp := m["b"]
+		tmp := m.Chain["b"]
 		v := tmp.GetRand(r)
 		counts[v]++
 	}

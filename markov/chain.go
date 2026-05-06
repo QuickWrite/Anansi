@@ -58,13 +58,19 @@ func (w *WeightedList[T]) clean() {
 }
 
 // Represents a generic Markov Chain to iterate through
-type MarkovChain[T comparable] map[T]WeightedList[T]
+type MarkovChain[T comparable] struct {
+	Chain map[T]WeightedList[T]
+	Keys  []T
+}
 
 // Creates a Markov Chain based on the provided sequence of tokens.
 //
 // It builds a weighted graph by measuring the frequency of the given states
 func BuildMarkovChain[T comparable](seq iter.Seq[T]) MarkovChain[T] {
-	markov := MarkovChain[T]{}
+	markov := MarkovChain[T]{
+		Chain: map[T]WeightedList[T]{},
+		Keys:  []T{},
+	}
 
 	var prev *T = nil
 
@@ -74,24 +80,30 @@ func BuildMarkovChain[T comparable](seq iter.Seq[T]) MarkovChain[T] {
 			continue
 		}
 
-		if val, ok := markov[*prev]; ok {
+		if val, ok := markov.Chain[*prev]; ok {
 			val.addDirty(elem)
-			markov[*prev] = val
+			markov.Chain[*prev] = val
 		} else {
-			markov[*prev] = WeightedList[T]{
+			markov.Chain[*prev] = WeightedList[T]{
 				list:    []T{elem},
 				weights: []int{1},
 				sum:     1,
 			}
+
+			markov.Keys = append(markov.Keys, *prev)
 		}
 
 		prev = &elem
 	}
 
-	for i, val := range markov {
+	for i, val := range markov.Chain {
 		val.clean()
-		markov[i] = val
+		markov.Chain[i] = val
 	}
 
 	return markov
+}
+
+func (m *MarkovChain[T]) GetRandomKey(r *rand.Rand) T {
+	return m.Keys[r.IntN(len(m.Keys))]
 }
