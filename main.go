@@ -80,6 +80,17 @@ Examples:
 `, path, path, path, path, path)
 }
 
+func parseUIntFlag(name string, flags map[string]string) uint {
+	l, err := strconv.Atoi(flags[name])
+
+	if err != nil || l <= 0 {
+		fmt.Printf("The value for --%s has to be a positive integer >0 and cannot be %s\n", name, flags[name])
+		os.Exit(1)
+	}
+
+	return uint(l)
+}
+
 func main() {
 	args, flags := parseArgs(os.Args[1:])
 
@@ -102,25 +113,9 @@ func main() {
 
 	var limit uint = 1000
 	if contains(flags, "l") {
-		l, err := strconv.Atoi(flags["l"])
-
-		if err != nil || l <= 0 {
-			fmt.Printf("The value for -l has to be a positive integer >0 and cannot be %s\n", flags["l"])
-			os.Exit(1)
-		}
-
-		limit = uint(l)
-	}
-
-	if contains(flags, "limit") {
-		l, err := strconv.Atoi(flags["limit"])
-
-		if err != nil || l <= 0 {
-			fmt.Printf("The value for --limit has to be a positive integer >0 and cannot be %s\n", flags["limit"])
-			os.Exit(1)
-		}
-
-		limit = uint(l)
+		limit = parseUIntFlag("l", flags)
+	} else if contains(flags, "limit") {
+		limit = parseUIntFlag("limit", flags)
 	}
 
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
