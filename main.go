@@ -34,7 +34,7 @@ func parseArgs(v []string) ([]string, map[string]string) {
 				flag = flag[1:]
 			}
 
-			parts := strings.SplitN(flag, "=", 1)
+			parts := strings.SplitN(flag, "=", 2)
 
 			if len(parts) > 1 {
 				flags[parts[0]] = parts[1]
