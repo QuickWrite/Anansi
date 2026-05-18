@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/rand/v2"
 	"net/http"
+	"strconv"
 
 	"github.com/QuickWrite/Anansi/markov"
 )
@@ -50,11 +51,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func runServer(c markov.MarkovChain[string], l uint) {
+func runServer(c markov.MarkovChain[string], l, port uint) {
 	chain = c
 	limit = l
 
 	http.HandleFunc("/{data}", viewHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":"+strconv.FormatUint(uint64(port), 10), nil))
 }

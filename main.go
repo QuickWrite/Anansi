@@ -72,6 +72,9 @@ Options:
   -l, --limit=<N>       Maximum number of tokens to generate.
                         If omitted, the default limit is <1000>.
 
+  -p, --port=<PORT>     The port the application should use.
+                        If omitted, the default port is <8080>.
+
 Examples:
   %s ./books/ulysses.txt                # uses default limit of 1000
   %s ./data/quotes.txt -l=500           # generate up to 500 tokens
@@ -118,9 +121,16 @@ func main() {
 		limit = parseUIntFlag("limit", flags)
 	}
 
+	var port uint = 8080
+	if contains(flags, "p") {
+		port = parseUIntFlag("p", flags)
+	} else if contains(flags, "port") {
+		port = parseUIntFlag("port", flags)
+	}
+
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
 
 	log.Print("Running Anansi")
 
-	runServer(chain, limit)
+	runServer(chain, limit, port)
 }
