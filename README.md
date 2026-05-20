@@ -11,5 +11,74 @@ $ ./Anansi path/to/file
 
 The program will now run on the port `8080` and will accept any HTTP request with a path that contains information.
 
+### Positional Arguments
+The Anansi executable has one positional argument: The path to the file that should be used to generate the Markov Chain. This path has to be valid and should point to a text-file in UTF-8 format. If the path is either not provided or the path is invalid the program will error out (status code `1` or `2`) and won't be run.
+
+The provided file is being separated by whitespace _(reminder: `\n`, `\r` and `\t` are also whitespace)_ and the Markov Chain is being built by analyzing pairs of these segmented tokens. More about that in the section ["Building the Markov Chain"](#building-the-markov-chain).
+
+### Flags
+The Anansi executable also has multiple flags to change it's behaviour:
+| **Name**        | **Type**           | **Default** | **Description**                                        | **Example**                  |
+|-----------------|--------------------|-------------|--------------------------------------------------------|------------------------------|
+| `-h`, `--help`  | Flag without value | None        | Prints the help message of the program.                | `./Anansi --help`            |
+| `-l`, `--limit` | unsigned integer   | `1000`      | Sets the maximum amount of tokens to generate per run. | `./Anansi file --limit=1000` |
+| `-p`, `--port`  | unsigned integer   | `8080`      | Sets the port Anansi should listen to.                 | `./Anansi file --port=2020`  |
+
+A flag can be provided at any position in the command and can contain a value by adding an `=` (e.g. `-l=50`).
+The flags are denoted by starting with at least one `-` and at most two `-`. This means that this is also a valid flag `-port=3000` and `--l=100`.
+
+Flags do not have to be provided and can all be provided at the same time. If the `--help`-Flag is being used the program is **not** being executed, prints the help-message and exits.
+
+## Building the Markov Chain
+The Markov Chain is being built by having a stream of text which is being segmented into tokens. These tokens are all the characters that are surrounded by whitespace. Whitespace characters are defined as the characters that have the `White_Space` property set to `yes` according to the Unicode standard. [The full list of these characters can be found here](https://en.wikipedia.org/wiki/Whitespace_character#Unicode).
+
+This means that these inputs are split into these lists separated by `|`:
+```
+hello world, this is a great day
+
+hello|world,|this|is|a|great|day
+```
+and also stuff like this:
+```
+can't                       mäèk &me '!prôud
+
+can't|mäèk|&me|'!prôud
+```
+
+> [!NOTE]
+> This is definitely not a perfect way to separate the text into meaningful segments as there are some questions regarding aspects like
+> - Should `can't` be one or two tokens?
+> - Should punctuation also be included or separated? (e.g. `awesome.` two or one token)
+> - How should other languages be treated that have other ways of separating meaningful segments?
+>
+> The main reason why all of this wasn't done is because the named solution is extremely simple and works in most cases. A more complicated tokenization algorithm can be added later.
+
+After these tokens have been generated the Markov Chain is being built by taking each token collecting all of it's successors and the amount this successor has been after the token. For example:
+
+If we have a token stream of
+```
+hello|world|hello|test|world|hello
+```
+then the collected information would look like this:
+| **Name** | **Successors**        |
+|----------|-----------------------|
+| `hello`  | `world`: 1, `test`: 1 |
+| `world`  | `hello`: 2            |
+| `test`   | `word`: 1             |
+
+From this data the Markov Chain can be built by stating that the amount of times a specific token occurs is the weight of that token. This means that it is $50\%$ likely that after a `hello` a `world` occurs and also $50\%$ likely that a `test` occurs.
+
+>  [!NOTE]
+> These weights are **not** getting normalized to a range of $[0, 1] \subset \mathbb{R}$, but are kept as integers. The only post-processing occurs that the $s = \sum \text{weights}$ are calculated and each elements value is $v = \text{last} + \text{weight}$.
+>
+> If a random element is being chosen from the successors a random number in $r \in (0, s] \cup \mathbb{N}$ is generated and the element where $v \leq r \land r < v_n$ ($v_n$ being the next element) is the element. 
+>
+> ----
+> 
+> This means that for `hello` the values are: <br>
+> `world`: $1$ and `test`: $2$ with $s = 2$. 
+> 
+> The random number $r$ that is being chosen can only be $1 \leq r \leq 2$ and as such if the value is $1$ the next token is `world` and if the value is $2$ the next token is `test`.
+
 ## License
 The project is licensed under the open source [Mozilla Public License Version 2.0](LICENSE).
