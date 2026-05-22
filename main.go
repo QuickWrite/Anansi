@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/QuickWrite/Anansi/markov"
+	"github.com/QuickWrite/Anansi/web"
 )
 
 // Converts the provided arguments into two different buckets
@@ -75,12 +76,16 @@ Options:
   -p, --port=<PORT>     The port the application should use.
                         If omitted, the default port is <8080>.
 
+  -r=<N>                How often links should be shown on a page.
+                        The bigger the number the less links will appear - setting it to 1 disables it.
+
 Examples:
   %s ./books/ulysses.txt                # uses default limit of 1000
   %s ./data/quotes.txt -l=500           # generate up to 500 tokens
   %s ./stories.txt --limit=2000         # generate up to 2000 tokens
   %s ./novel.txt -h                     # display this help screen
-`, path, path, path, path, path)
+  %s ./goethe.txt -r 2					# will show a lot of links
+`, path, path, path, path, path, path)
 }
 
 func parseUIntFlag(name string, flags map[string]string) uint {
@@ -128,9 +133,14 @@ func main() {
 		port = parseUIntFlag("port", flags)
 	}
 
+	var linkRandomness int = 100
+	if contains(flags, "r") {
+		linkRandomness = int(parseUIntFlag("r", flags))
+	}
+
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
 
 	log.Print("Running Anansi")
 
-	runServer(chain, limit, port)
+	web.RunServer(chain, limit, port, linkRandomness, "Anansi")
 }

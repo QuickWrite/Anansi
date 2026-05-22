@@ -2,10 +2,13 @@
 //   License, v. 2.0. If a copy of the MPL was not distributed with this
 //   file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-package main
+package web
 
 import (
+	"bytes"
+	"embed"
 	"hash/fnv"
+	"html/template"
 	"log"
 	"math/rand/v2"
 	"net/http"
@@ -17,6 +20,18 @@ import (
 // Global variables that store the settings.
 var chain markov.MarkovChain[string]
 var limit uint
+var linkRandomness int
+var title string
+
+// PageData struct(s) for the go html template
+type PageData struct {
+	Title   string
+	Slug    string
+	Content template.HTML
+}
+
+//go:embed page.gohtml
+var page embed.FS
 
 // NewFromString returns a deterministic RNG seeded from a string.
 func NewFromString(seed string) *rand.Rand {
@@ -36,7 +51,11 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	start := chain.GetRandomKey(rand)
 	s := markov.NewState(chain, start, rand)
-	w.Write([]byte(start))
+
+	contents := ""
+
+	contents += start
+	tpl := template.Must(template.ParseFS(page, "*.gohtml"))
 
 	var i uint = 0
 	for p := range s.Seq() {
@@ -46,14 +65,24 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		w.Write([]byte(" "))
-		w.Write([]byte(p))
+		contents += " "
+		if rand.IntN(linkRandomness) == 1 {
+			var buf bytes.Buffer
+			tpl.ExecuteTemplate(&buf, "Link", p)
+			contents += buf.String()
+		} else {
+			contents += p
+		}
 	}
+
+	tpl.Execute(w, PageData{Title: title, Content: template.HTML(contents), Slug: data})
 }
 
-func runServer(c markov.MarkovChain[string], l, port uint) {
+func RunServer(c markov.MarkovChain[string], l, port uint, lr int, t string) {
 	chain = c
 	limit = l
+	linkRandomness = lr
+	title = t
 
 	http.HandleFunc("/{data}", viewHandler)
 

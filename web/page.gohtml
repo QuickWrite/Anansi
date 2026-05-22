@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ .Title }} - {{ .Slug }}</title>
+    </head>
+    <body>
+        <p>{{ .Content }}</p>
+    </body>
+</html>
+
+{{ define "Link" }}
+    <a href="{{.}}">{{.}}</a>
+{{ end }}
