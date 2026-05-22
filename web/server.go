@@ -5,7 +5,6 @@
 package web
 
 import (
-	"bytes"
 	"embed"
 	"hash/fnv"
 	"html/template"
@@ -13,6 +12,7 @@ import (
 	"math/rand/v2"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/QuickWrite/Anansi/markov"
 )
@@ -23,15 +23,18 @@ var limit uint
 var linkRandomness int
 var title string
 
-// PageData struct(s) for the go html template
+var tmpl *template.Template
+var linkTmpl *template.Template
+
+//go:embed page.gohtml
+var page embed.FS
+
+// PageData struct for the go html template of the site
 type PageData struct {
 	Title   string
 	Slug    string
 	Content template.HTML
 }
-
-//go:embed page.gohtml
-var page embed.FS
 
 // NewFromString returns a deterministic RNG seeded from a string.
 func NewFromString(seed string) *rand.Rand {
@@ -52,10 +55,9 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	start := chain.GetRandomKey(rand)
 	s := markov.NewState(chain, start, rand)
 
-	contents := ""
+	var contents strings.Builder
 
-	contents += start
-	tpl := template.Must(template.ParseFS(page, "*.gohtml"))
+	contents.WriteString(start)
 
 	var i uint = 0
 	for p := range s.Seq() {
@@ -65,17 +67,15 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 
-		contents += " "
+		contents.WriteString(" ")
 		if rand.IntN(linkRandomness) == 1 {
-			var buf bytes.Buffer
-			tpl.ExecuteTemplate(&buf, "Link", p)
-			contents += buf.String()
+			linkTmpl.Execute(&contents, p)
 		} else {
-			contents += p
+			contents.WriteString(p)
 		}
 	}
 
-	tpl.Execute(w, PageData{Title: title, Content: template.HTML(contents), Slug: data})
+	tmpl.Execute(w, PageData{Title: title, Content: template.HTML(contents.String()), Slug: data})
 }
 
 func RunServer(c markov.MarkovChain[string], l, port uint, lr int, t string) {
@@ -83,6 +83,8 @@ func RunServer(c markov.MarkovChain[string], l, port uint, lr int, t string) {
 	limit = l
 	linkRandomness = lr
 	title = t
+	tmpl = template.Must(template.ParseFS(page, "*.gohtml"))
+	linkTmpl = tmpl.Lookup("Link")
 
 	http.HandleFunc("/{data}", viewHandler)
 

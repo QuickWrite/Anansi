@@ -77,14 +77,14 @@ Options:
                         If omitted, the default port is <8080>.
 
   -r=<N>                How often links should be shown on a page.
-                        The bigger the number the less links will appear - setting it to 1 disables it.
+                        The bigger the number the less links will appear - setting it to 1 or lower disables it.
 
 Examples:
   %s ./books/ulysses.txt                # uses default limit of 1000
   %s ./data/quotes.txt -l=500           # generate up to 500 tokens
   %s ./stories.txt --limit=2000         # generate up to 2000 tokens
   %s ./novel.txt -h                     # display this help screen
-  %s ./goethe.txt -r 2					# will show a lot of links
+  %s ./goethe.txt -r 2                  # will show a lot of links
 `, path, path, path, path, path, path)
 }
 
@@ -136,6 +136,9 @@ func main() {
 	var linkRandomness int = 100
 	if contains(flags, "r") {
 		linkRandomness = int(parseUIntFlag("r", flags))
+		if linkRandomness < 1 {
+			linkRandomness = 1
+		}
 	}
 
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
