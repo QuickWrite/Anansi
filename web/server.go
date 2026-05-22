@@ -69,13 +69,25 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 		contents.WriteString(" ")
 		if rand.IntN(linkRandomness) == 1 {
-			linkTmpl.Execute(&contents, p)
+			err := linkTmpl.Execute(&contents, p)
+			if err != nil {
+				w.WriteHeader(500)
+				w.Write([]byte("Some internal error occurred :'("))
+				log.Println("Could not execute link template:", err)
+				return
+			}
 		} else {
 			contents.WriteString(p)
 		}
 	}
 
-	tmpl.Execute(w, PageData{Title: title, Content: template.HTML(contents.String()), Slug: data})
+	err := tmpl.Execute(w, PageData{Title: title, Content: template.HTML(contents.String()), Slug: data})
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte("Some internal error occurred :'("))
+		log.Println("Could not execute template:", err)
+		return
+	}
 }
 
 func RunServer(c markov.MarkovChain[string], l, port uint, lr int, t string) {
