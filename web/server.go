@@ -20,8 +20,9 @@ import (
 // Global variables that store the settings.
 var chain markov.MarkovChain[string]
 var limit uint
-var linkRandomness int
+var linkProbability int
 var title string
+var minLinkLen int
 
 var tmpl *template.Template
 var linkTmpl *template.Template
@@ -68,7 +69,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		contents.WriteString(" ")
-		if len(p) > 3 && rand.IntN(linkRandomness) == 1 {
+
+		if len(p) >= minLinkLen && rand.IntN(100) < linkProbability {
 			err := linkTmpl.Execute(&contents, p)
 			if err != nil {
 				w.WriteHeader(500)
@@ -90,13 +92,14 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RunServer(c markov.MarkovChain[string], l, port uint, lr int, t string) {
+func RunServer(c markov.MarkovChain[string], l, port uint, lp int, t string, mll int) {
 	chain = c
 	limit = l
-	linkRandomness = lr
+	linkProbability = lp
 	title = t
 	tmpl = template.Must(template.ParseFS(page, "*.gohtml"))
 	linkTmpl = tmpl.Lookup("Link")
+	minLinkLen = mll
 
 	http.HandleFunc("/{data}", viewHandler)
 

@@ -76,16 +76,21 @@ Options:
   -p, --port=<PORT>     The port the application should use.
                         If omitted, the default port is <8080>.
 
-  -r=<N>                How often links should be shown on a page.
-                        The bigger the number the less links will appear - setting it to 1 or lower disables it.
+  -r=<N>                Probability for a word to also be a link, ranging from 1 to 100.
+                        This only counts for words with a defined minimum length - as seen in the option below.
+                        If omitted, the default probability is <5>.
+
+  -w=<N>                The minimum length of a word/token to be candidate for a link.
+                        If omitted, the default minimum length is <4>.
 
 Examples:
   %s ./books/ulysses.txt                # uses default limit of 1000
   %s ./data/quotes.txt -l=500           # generate up to 500 tokens
   %s ./stories.txt --limit=2000         # generate up to 2000 tokens
   %s ./novel.txt -h                     # display this help screen
-  %s ./goethe.txt -r 2                  # will show a lot of links
-`, path, path, path, path, path, path)
+  %s ./goethe.txt -r=90                 # will show a lot of links
+  %s ./stories/goodnight.txt -w=4       # words with 4 or more characters will be used for links
+`, path, path, path, path, path, path, path)
 }
 
 func parseUIntFlag(name string, flags map[string]string) uint {
@@ -97,6 +102,16 @@ func parseUIntFlag(name string, flags map[string]string) uint {
 	}
 
 	return uint(l)
+}
+
+func parseIntFlag(name string, flags map[string]string) int {
+	l, err := strconv.Atoi(flags[name])
+	if err != nil || l < 0 {
+		fmt.Printf("The value for --%s has to be an integer >=0 and cannot be %s\n", name, flags[name])
+		os.Exit(1)
+	}
+
+	return l
 }
 
 func main() {
@@ -133,17 +148,23 @@ func main() {
 		port = parseUIntFlag("port", flags)
 	}
 
-	var linkRandomness int = 80
+	var linkProbability = 5
 	if contains(flags, "r") {
-		linkRandomness = int(parseUIntFlag("r", flags))
-		if linkRandomness < 1 {
-			linkRandomness = 1
+		linkProbability = parseIntFlag("r", flags)
+		if linkProbability > 100 {
+			fmt.Println("The value for --r must range from 0 to 100.")
+			os.Exit(1)
 		}
+	}
+
+	var minLinkLen = 4
+	if contains(flags, "w") {
+		minLinkLen = parseIntFlag("w", flags)
 	}
 
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
 
 	log.Print("Running Anansi")
 
-	web.RunServer(chain, limit, port, linkRandomness, "Anansi")
+	web.RunServer(chain, limit, port, linkProbability, "Anansi", minLinkLen)
 }
