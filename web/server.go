@@ -68,7 +68,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		contents.WriteString(" ")
-		if rand.IntN(linkRandomness) == 1 {
+		if len(p) > 3 && rand.IntN(linkRandomness) == 1 {
 			err := linkTmpl.Execute(&contents, p)
 			if err != nil {
 				w.WriteHeader(500)

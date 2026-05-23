@@ -133,7 +133,7 @@ func main() {
 		port = parseUIntFlag("port", flags)
 	}
 
-	var linkRandomness int = 100
+	var linkRandomness int = 80
 	if contains(flags, "r") {
 		linkRandomness = int(parseUIntFlag("r", flags))
 		if linkRandomness < 1 {
