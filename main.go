@@ -96,22 +96,12 @@ Examples:
 func parseUIntFlag(name string, flags map[string]string) uint {
 	l, err := strconv.Atoi(flags[name])
 
-	if err != nil || l <= 0 {
-		fmt.Printf("The value for --%s has to be a positive integer >0 and cannot be %s\n", name, flags[name])
+	if err != nil || l < 0 {
+		fmt.Printf("The value for --%s has to be a positive integer >=0 and cannot be %s\n", name, flags[name])
 		os.Exit(1)
 	}
 
 	return uint(l)
-}
-
-func parseIntFlag(name string, flags map[string]string) int {
-	l, err := strconv.Atoi(flags[name])
-	if err != nil || l < 0 {
-		fmt.Printf("The value for --%s has to be an integer >=0 and cannot be %s\n", name, flags[name])
-		os.Exit(1)
-	}
-
-	return l
 }
 
 func main() {
@@ -141,6 +131,11 @@ func main() {
 		limit = parseUIntFlag("limit", flags)
 	}
 
+	if limit < 1 {
+		fmt.Println("The value for the token limit must be greater than 0.")
+		os.Exit(1)
+	}
+
 	var port uint = 8080
 	if contains(flags, "p") {
 		port = parseUIntFlag("p", flags)
@@ -148,18 +143,23 @@ func main() {
 		port = parseUIntFlag("port", flags)
 	}
 
+	if port < 1 {
+		fmt.Println("The value for the port must be greater than 0.")
+		os.Exit(1)
+	}
+
 	var linkProbability = 5
 	if contains(flags, "r") {
-		linkProbability = parseIntFlag("r", flags)
+		linkProbability = int(parseUIntFlag("r", flags))
 		if linkProbability > 100 {
-			fmt.Println("The value for --r must range from 0 to 100.")
+			fmt.Println("The value for the link probability must range from 0 to 100.")
 			os.Exit(1)
 		}
 	}
 
 	var minLinkLen = 4
 	if contains(flags, "w") {
-		minLinkLen = parseIntFlag("w", flags)
+		minLinkLen = int(parseUIntFlag("w", flags))
 	}
 
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
