@@ -148,18 +148,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	var linkProbability = 5
+	var linkProbability uint = 5
 	if contains(flags, "r") {
-		linkProbability = int(parseUIntFlag("r", flags))
+		linkProbability = parseUIntFlag("r", flags)
 		if linkProbability > 100 {
 			fmt.Println("The value for the link probability must range from 0 to 100.")
 			os.Exit(1)
 		}
 	}
 
-	var minLinkLen = 4
+	var minLinkLen uint = 4
 	if contains(flags, "w") {
-		minLinkLen = int(parseUIntFlag("w", flags))
+		minLinkLen = parseUIntFlag("w", flags)
 	}
 
 	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
