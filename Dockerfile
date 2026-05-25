@@ -1,5 +1,5 @@
 # Build step
-FROM golang:1.26-alpine as build
+FROM golang:1.26-alpine AS build
 WORKDIR /
 COPY . ./
 RUN go build
