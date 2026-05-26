@@ -1,0 +1,94 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "v*.*.*" ]
+
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Required for ARM builds on x86 runners
+      - name: Set up QEMU
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Install cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@v4.1.2
+
+      - name: Log into registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+
+            type=semver,pattern=v{{version}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{major}}
+
+            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+
+      - name: Show generated tags
+        run: echo "${{ steps.meta.outputs.tags }}"
+
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+
+          push: ${{ github.event_name != 'pull_request' }}
+
+          platforms: ${{ startsWith(github.ref, 'refs/tags/v') && 'linux/amd64,linux/arm64' || 'linux/amd64' }}
+
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+          provenance: mode=max
+          sbom: true
+
+      - name: Sign the published Docker image
+        if: github.event_name != 'pull_request'
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: |
+          while IFS= read -r tag; do
+            echo "Signing ${tag}@${DIGEST}"
+            cosign sign --yes "${tag}@${DIGEST}"
+          done <<< "${TAGS}"

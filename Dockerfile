@@ -1,5 +1,5 @@
 # Build step
-FROM golang:1.26-alpine as build
+FROM golang:1.26-alpine AS build
 WORKDIR /
 COPY . ./
 RUN go build
@@ -18,4 +18,13 @@ COPY --from=build /Anansi /
 # The current application runs on the port 8080
 EXPOSE 8080/tcp
 
-CMD [ "/Anansi" ]
+ENV ANANSI_PATH=/data/default.txt \
+    ANANSI_LIMIT=1000 \
+    ANANSI_PORT=8080 \
+    ANANSI_LINK_PROBABILITY=5 \
+    ANANSI_MIN_LINK_LENGTH=4
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
