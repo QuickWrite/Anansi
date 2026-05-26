@@ -23,6 +23,8 @@ The Anansi executable also has multiple flags to change it's behaviour:
 | `-h`, `--help`  | Flag without value | None        | Prints the help message of the program.                | `./Anansi --help`            |
 | `-l`, `--limit` | unsigned integer   | `1000`      | Sets the maximum amount of tokens to generate per run. | `./Anansi file --limit=1000` |
 | `-p`, `--port`  | unsigned integer   | `8080`      | Sets the port Anansi should listen to.                 | `./Anansi file --port=2020`  |
+| `-r` | unsigned integer | `5` | Probability in percent for each token to be a link (if larger than min length). | `./Anansi -r=90`
+| `-w` | unsigned integer | `4` | The minimum length a token must have to qualify for being a link. | `./Anansi -w=3`
 
 A flag can be provided at any position in the command and can contain a value by adding an `=` (e.g. `-l=50`).
 The flags are denoted by starting with at least one `-` and at most two `-`. This means that this is also a valid flag `-port=3000` and `--l=100`.
