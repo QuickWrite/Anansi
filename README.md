@@ -80,5 +80,35 @@ From this data the Markov Chain can be built by stating that the amount of times
 > 
 > The random number $r$ that is being chosen can only be $1 \leq r \leq 2$ and as such if the value is $1$ the next token is `world` and if the value is $2$ the next token is `test`.
 
+## Docker image
+The Anansi application is available as a Docker image on GitHub Container Registry:
+```bash
+docker pull ghcr.io/quickwrite/anansi:latest
+```
+
+There are two ways supported by this repository to run this image with Docker:
+1. Run with Docker:
+   ```bash
+   docker run -p 8080:8080 \
+        -e ANANSI\_PATH=/data/default.txt \
+        -e ANANSI\_LIMIT=1000 \
+        -e ANANSI\_PORT=8080 \
+        -e ANANSI\_LINK\_PROBABILITY=5 \
+        -e ANANSI\_MIN\_LINK\_LENGTH=4 \
+        -v .:/data \
+        ghcr.io/quickwrite/anansi:latest
+   ```
+2. Run with Docker Compose:
+   
+   The project contains a [`docker-compose.yml`](/docker-compose.yml). Download it and then run
+   ```bash
+   docker-compose up -d
+   ```
+
+The image will start (by default) on the port `8080`.
+
+> [!NOTE]
+> The image **does not provide** a file to build the Markov Chain. This file has to be provided from the outside and have the name defined in `ANANSI_PATH`. Without this mounted file, the program will stop with the message: `no such file or directory`.
+
 ## License
 The project is licensed under the open source [Mozilla Public License Version 2.0](LICENSE).
