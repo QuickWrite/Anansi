@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        {{ if not (eq .Title.Position 2) -}}
-            {{- if eq .Title.Position 0 -}}{{/* Left Position */}}
+        {{ if eq .Title.Position 0 -}}{{/* Application name left */}}
             <title>{{ .Title.Name }} {{ .Title.Separator }} {{ .Slug }}</title>
-            {{- else -}}{{/* Right Position */}}
+        {{- else if eq .Title.Position 1 -}}{{/* Application name right */}}
             <title>{{ .Slug }} {{ .Title.Separator }} {{ .Title.Name }}</title>
-            {{- end -}}
-        {{- else -}}{{/* Position None */}}
+        {{- else -}}{{/* No extra name */}}
             <title>{{ .Slug }}</title>
         {{- end }}
     </head>
