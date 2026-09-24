@@ -21,7 +21,7 @@ import (
 var chain markov.MarkovChain[string]
 var limit uint
 var linkProbability uint
-var title string
+var title *Title
 var minLinkLen uint
 
 var tmpl *template.Template
@@ -30,9 +30,23 @@ var linkTmpl *template.Template
 //go:embed page.gohtml
 var page embed.FS
 
+type TitlePosition int
+
+const (
+	TitleLeft TitlePosition = iota
+	TitleRight
+	TitleNone
+)
+
+type Title struct {
+	Name      string
+	Separator string
+	Position  TitlePosition
+}
+
 // PageData struct for the go html template of the site
 type PageData struct {
-	Title   string
+	Title   *Title
 	Slug    string
 	Content template.HTML
 }
@@ -92,7 +106,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RunServer(c markov.MarkovChain[string], l, port uint, lp uint, t string, mll uint) {
+func RunServer(c markov.MarkovChain[string], l, port uint, lp uint, t *Title, mll uint) {
 	chain = c
 	limit = l
 	linkProbability = lp

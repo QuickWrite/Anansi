@@ -1,7 +1,15 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>{{ .Title }} - {{ .Slug }}</title>
+        {{ if not (eq .Title.Position 2) -}}
+            {{- if eq .Title.Position 0 -}}{{/* Left Position */}}
+            <title>{{ .Title.Name }} {{ .Title.Separator }} {{ .Slug }}</title>
+            {{- else -}}{{/* Right Position */}}
+            <title>{{ .Slug }} {{ .Title.Separator }} {{ .Title.Name }}</title>
+            {{- end -}}
+        {{- else -}}{{/* Position None */}}
+            <title>{{ .Slug }}</title>
+        {{- end }}
     </head>
     <body>
         <p>{{ .Content }}</p>
