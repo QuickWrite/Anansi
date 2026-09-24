@@ -79,7 +79,7 @@ Options:
 
   -t, --title=<NAME>    The title of the application. It will be shown in the title of the application.
                         It has three arguments: The name, the spacer and the position.
-                        These are separated by a comma. The position must be <left> or <right>.
+                        These are separated by a comma. The position must be <left>, <right> or <none>.
                         If omitted, the default title is <Anansi,-,left>.
 
   -r=<N>                Probability for a word to also be a link, ranging from 1 to 100.

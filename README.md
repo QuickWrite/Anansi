@@ -23,7 +23,7 @@ The Anansi executable also has multiple flags to change it's behaviour:
 | `-h`, `--help`  | Flag without value | None            | Prints the help message of the program.                                         | `./Anansi --help`            |
 | `-l`, `--limit` | unsigned integer   | `1000`          | Sets the maximum amount of tokens to generate per run.                          | `./Anansi file --limit=1000` |
 | `-p`, `--port`  | unsigned integer   | `8080`          | Sets the port Anansi should listen to.                                          | `./Anansi file --port=2020`  |
-| `-t`, `--title` | list of strings    | `Anansi,-,left` | Configures the title the application should have                                | `./Anansi file -t=A,+,right` |
+| `-t`, `--title` | list of strings    | `Anansi,-,left` | Configures the title the application should have.                               | `./Anansi file -t=A,+,right` |
 | `-r`            | unsigned integer   | `5`             | Probability in percent for each token to be a link (if larger than min length). | `./Anansi -r=90`             |
 | `-w`            | unsigned integer   | `4`             | The minimum length a token must have to qualify for being a link.               | `./Anansi -w=3`              |
 
@@ -31,6 +31,19 @@ A flag can be provided at any position in the command and can contain a value by
 The flags are denoted by starting with at least one `-` and at most two `-`. This means that this is also a valid flag `-port=3000` and `--l=100`.
 
 Flags do not have to be provided and can all be provided at the same time. If the `--help`-Flag is being used the program is **not** being executed, prints the help-message and exits.
+
+----
+
+The title flag is separated into three different parts. The name, separator and position (in that order).
+
+1. The name contains the application name (default: `Anansi`). It can be any string[^1].
+2. The separator is the string of characters that separates the name and the title of the page. It can be any string[^1].
+3. The position tells the renderer how it should be displayed. It has three different possibilities:
+   - `left` which would be: `{name} {separator} {title}` _(default)_
+   - `right` which would be: `{title} {separator} {name}`
+   - `none` which would be: `{title}`
+
+[^1]: Because of the way it parses, the strings cannot contain a `,`. This is because the parser recognizes the `,` as the separator and will see four parts.
 
 ## Building the Markov Chain
 The Markov Chain is being built by having a stream of text which is being segmented into tokens. These tokens are all the characters that are surrounded by whitespace. Whitespace characters are defined as the characters that have the `White_Space` property set to `yes` according to the Unicode standard. [The full list of these characters can be found here](https://en.wikipedia.org/wiki/Whitespace_character#Unicode).
