@@ -5,6 +5,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -76,6 +77,11 @@ Options:
   -p, --port=<PORT>     The port the application should use.
                         If omitted, the default port is <8080>.
 
+  -t, --title=<NAME>    The title of the application. It will be shown in the title of the application.
+                        It has three arguments: The name, the spacer and the position.
+                        These are separated by a comma. The position must be <left>, <right> or <none>.
+                        If omitted, the default title is <Anansi,-,left>.
+
   -r=<N>                Probability for a word to also be a link, ranging from 1 to 100.
                         This only counts for words with a defined minimum length - as seen in the option below.
                         If omitted, the default probability is <5>.
@@ -88,9 +94,10 @@ Examples:
   %s ./data/quotes.txt -l=500           # generate up to 500 tokens
   %s ./stories.txt --limit=2000         # generate up to 2000 tokens
   %s ./novel.txt -h                     # display this help screen
+  %s ./sleepingbeauty.txt -t=G,=,right  # Will put "= G" after the page title
   %s ./goethe.txt -r=90                 # will show a lot of links
   %s ./stories/goodnight.txt -w=4       # words with 4 or more characters will be used for links
-`, path, path, path, path, path, path, path)
+`, path, path, path, path, path, path, path, path)
 }
 
 func parseUIntFlag(name string, flags map[string]string) uint {
@@ -102,6 +109,37 @@ func parseUIntFlag(name string, flags map[string]string) uint {
 	}
 
 	return uint(l)
+}
+
+func parseTitle(value string) (*web.Title, error) {
+	parts := strings.Split(value, ",")
+
+	if len(parts) != 3 {
+		return nil, errors.New(
+			"The amount of elements in the title flag is " + strconv.Itoa(len(parts)) + ", but should be 3.",
+		)
+	}
+
+	var position web.TitlePosition
+
+	switch parts[2] {
+	case "left":
+		position = web.TitleLeft
+	case "right":
+		position = web.TitleRight
+	case "", "none":
+		position = web.TitleNone
+	default:
+		return nil, errors.New(
+			"The position can only be left, right or none",
+		)
+	}
+
+	return &web.Title{
+		Name:      parts[0],
+		Separator: parts[1],
+		Position:  position,
+	}, nil
 }
 
 func main() {
@@ -136,6 +174,21 @@ func main() {
 		os.Exit(1)
 	}
 
+	title := &web.Title{
+		Name:      "Anansi",
+		Separator: "-",
+		Position:  web.TitleLeft,
+	}
+
+	if contains(flags, "title") {
+		title, err = parseTitle(flags["title"])
+
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(1)
+		}
+	}
+
 	var port uint = 8080
 	if contains(flags, "p") {
 		port = parseUIntFlag("p", flags)
@@ -166,5 +219,5 @@ func main() {
 
 	log.Print("Running Anansi")
 
-	web.RunServer(chain, limit, port, linkProbability, "Anansi", minLinkLen)
+	web.RunServer(chain, limit, port, linkProbability, title, minLinkLen)
 }
