@@ -82,12 +82,12 @@ then the collected information would look like this:
 | `world`  | `hello`: 2            |
 | `test`   | `word`: 1             |
 
-From this data the Markov Chain can be built by stating that the amount of times a specific token occurs is the weight of that token. This means that it is $50\%$ likely that after a `hello` a `world` occurs and also $50\%$ likely that a `test` occurs.
+From this data the Markov Chain can be built by stating that the amount of times a specific token occurs is the weight of that token. This means that it is $`50\%`$ likely that after a `hello` a `world` occurs and also $`50\%`$ likely that a `test` occurs.
 
 >  [!NOTE]
 > These weights are **not** getting normalized to a range of $[0, 1] \subset \mathbb{R}$, but are kept as integers. The only post-processing occurs that the $s = \sum \text{weights}$ are calculated and each elements value is $v = \text{last} + \text{weight}$.
 >
-> If a random element is being chosen from the successors a random number in $r \in (0, s] \cup \mathbb{N}$ is generated and the element where $v \leq r \land r < v_n$ ($v_n$ being the next element) is the element. 
+> If a random element is being chosen from the successors a random number in $r \in (0, s] \cup \mathbb{N}$ is generated and the element where $`v \leq r \land r < v_n`$ ($`v_n`$ being the next element) is the element.
 >
 > ----
 > 
