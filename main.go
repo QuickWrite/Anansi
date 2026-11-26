@@ -219,5 +219,5 @@ func main() {
 
 	log.Print("Running Anansi")
 
-	web.RunServer(&chain, limit, port, linkProbability, title, minLinkLen)
+	web.RunServer([]*markov.MarkovChain[string]{&chain}, limit, port, linkProbability, title, minLinkLen)
 }
