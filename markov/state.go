@@ -10,13 +10,13 @@ import (
 )
 
 type MarkovState[T comparable] struct {
-	MarkovChain[T]
+	*MarkovChain[T]
 	Current T
 	Rand    rand.Rand
 }
 
 // Creates some new state
-func NewState[T comparable](chain MarkovChain[T], current T, source rand.Source) MarkovState[T] {
+func NewState[T comparable](chain *MarkovChain[T], current T, source rand.Source) MarkovState[T] {
 	return MarkovState[T]{
 		MarkovChain: chain,
 		Current:     current,

@@ -18,7 +18,7 @@ import (
 )
 
 // Global variables that store the settings.
-var chain markov.MarkovChain[string]
+var chain *markov.MarkovChain[string]
 var limit uint
 var linkProbability uint
 var title *Title
@@ -106,7 +106,7 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RunServer(c markov.MarkovChain[string], l, port uint, lp uint, t *Title, mll uint) {
+func RunServer(c *markov.MarkovChain[string], l, port uint, lp uint, t *Title, mll uint) {
 	chain = c
 	limit = l
 	linkProbability = lp
