@@ -30,7 +30,7 @@ func TestMarkovState_Basic(t *testing.T) {
 	seq := seqOf([]string{"a", "b", "c"})
 	chain := markov.BuildMarkovChain(seq)
 
-	state := markov.NewState(chain, "a", rand.NewPCG(1, 2))
+	state := markov.NewState(&chain, "a", rand.NewPCG(1, 2))
 
 	next, ok := state.GetNext()
 	if !ok || next != "b" {
@@ -42,7 +42,7 @@ func TestMarkovState_TerminalStops(t *testing.T) {
 	seq := seqOf([]string{"a", "b"})
 	chain := markov.BuildMarkovChain(seq)
 
-	state := markov.NewState(chain, "b", rand.NewPCG(1, 2))
+	state := markov.NewState(&chain, "b", rand.NewPCG(1, 2))
 
 	_, ok := state.GetNext()
 	if ok {
@@ -54,7 +54,7 @@ func TestMarkovState_SeqStops(t *testing.T) {
 	seq := seqOf([]string{"a", "b"})
 	chain := markov.BuildMarkovChain(seq)
 
-	state := markov.NewState(chain, "a", rand.NewPCG(1, 2))
+	state := markov.NewState(&chain, "a", rand.NewPCG(1, 2))
 
 	var got []string
 	for v := range state.Seq() {
@@ -73,7 +73,7 @@ func TestMarkovState_SequenceProgression(t *testing.T) {
 	seq := seqOf([]string{"a", "b", "c", "d"})
 	chain := markov.BuildMarkovChain(seq)
 
-	state := markov.NewState(chain, "a", rand.NewPCG(1, 2))
+	state := markov.NewState(&chain, "a", rand.NewPCG(1, 2))
 
 	got := collectN(state.Seq(), 3)
 

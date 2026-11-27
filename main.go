@@ -61,12 +61,12 @@ func contains[T comparable, V any](m map[T]V, k T) bool {
 
 func printHelp(path string) {
 	fmt.Printf(`
-Usage:  %s <path> [options]
+Usage:  %s <path>... [options]
 
 A mischievous web application to generate an endless stream of senseless text.
 
-  <path>                Path to the text file that will be parsed into a
-                        Markov chain.
+  <path>                Path to the text file that will be parsed into a Markov chain.
+                        This path can be specified multiple times to create multiple Markov chains.
 
 Options:
   -h, --help            Show this help message and exit.
@@ -151,15 +151,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	if len(args) != 1 {
+	if len(args) < 1 {
 		fmt.Printf("The program needs the path to the file.\nTo find out more please write %s --help\n", os.Args[0])
 		os.Exit(1)
-	}
-
-	file, err := os.ReadFile(args[0])
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(2)
 	}
 
 	var limit uint = 1000
@@ -173,6 +167,8 @@ func main() {
 		fmt.Println("The value for the token limit must be greater than 0.")
 		os.Exit(1)
 	}
+
+	var err error
 
 	title := &web.Title{
 		Name:      "Anansi",
@@ -215,9 +211,22 @@ func main() {
 		minLinkLen = parseUIntFlag("w", flags)
 	}
 
-	chain := markov.BuildMarkovChain(markov.Tokenize(string(file)))
+	chains := []*markov.MarkovChain[string]{}
+
+	for _, file := range args {
+		content, err := os.ReadFile(file)
+
+		if err != nil {
+			fmt.Println(err.Error())
+			os.Exit(2)
+		}
+
+		fmt.Printf("Processing file %s\n", file)
+		chain := markov.BuildMarkovChain(markov.Tokenize(string(content)))
+		chains = append(chains, &chain)
+	}
 
 	log.Print("Running Anansi")
 
-	web.RunServer(chain, limit, port, linkProbability, title, minLinkLen)
+	web.RunServer(chains, limit, port, linkProbability, title, minLinkLen)
 }

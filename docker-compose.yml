@@ -8,6 +8,8 @@ services:
       # Optional envirnonment variables
       # If they aren't provided, they assume these provided defaults
       ANANSI_PATH: /data/default.txt
+      # Instead of ANANSI_PATH, the directory can be provided directly as well:
+      # ANANSI_INPUT_DIR: /data
       ANANSI_LIMIT: 1000
       ANANSI_PORT: 8080
       ANANSI_LINK_PROBABILITY: 5

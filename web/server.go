@@ -18,7 +18,7 @@ import (
 )
 
 // Global variables that store the settings.
-var chain markov.MarkovChain[string]
+var chains []*markov.MarkovChain[string]
 var limit uint
 var linkProbability uint
 var title *Title
@@ -67,6 +67,8 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 
 	rand := NewFromString(data)
 
+	chain := chains[rand.IntN(len(chains))]
+
 	start := chain.GetRandomKey(rand)
 	s := markov.NewState(chain, start, rand)
 
@@ -106,8 +108,12 @@ func viewHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RunServer(c markov.MarkovChain[string], l, port uint, lp uint, t *Title, mll uint) {
-	chain = c
+func RunServer(c []*markov.MarkovChain[string], l, port uint, lp uint, t *Title, mll uint) {
+	if len(c) < 1 {
+		log.Fatal("Violated invariant: Amount of MarkovChains must be at least one.")
+	}
+
+	chains = c
 	limit = l
 	linkProbability = lp
 	title = t
