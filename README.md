@@ -114,6 +114,9 @@ There are two ways supported by this repository to run this image with Docker:
         -v .:/data \
         ghcr.io/quickwrite/anansi:latest
    ```
+
+   If the environment variable `ANANSI_INPUT_DIR` instead of `ANANSI_PATH` is provided, all files inside of this directory are getting parsed. However both cannot be provided at the same time.
+
 2. Run with Docker Compose:
    
    The project contains a [`docker-compose.yml`](/docker-compose.yml). Download it and then run
